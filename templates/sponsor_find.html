@@ -1,0 +1,100 @@
+{% extends "base.html" %} {% block title %}Find{% endblock %} {% block content
+%}
+<div class="dashboard">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <form
+      class="input-group"
+      method="GET"
+      action="{{ url_for('sponsor_find') }}"
+    >
+      <input
+        type="text"
+        class="form-control"
+        name="search"
+        placeholder="Search by Title"
+        aria-label="Search by Title"
+      />
+      <button class="btn btn-outline-success" type="submit">Search</button>
+    </form>
+  </div>
+
+  <h3 class="mt-4">Campaigns:</h3>
+  <div class="row mt-4">
+    {% if campaigns %} {% for campaign in campaigns %}
+    <div class="col-md-4 mb-4">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">
+            <a
+              href="{{ url_for('view_campaign_details', campaign_id=campaign.id) }}"
+              >{{ campaign.title }}</a
+            >
+          </h5>
+          <p class="card-text">{{ campaign.description }}</p>
+          <p class="card-text">
+            <small class="text-muted">{{ campaign.niche }}</small>
+          </p>
+          <div class="mt-3">
+            <a
+              href="{{ url_for('update_campaign', campaign_id=campaign.id) }}"
+              class="btn btn-primary btn-sm"
+              >Update</a
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %} {% else %}
+    <p>No campaigns found.</p>
+    {% endif %}
+  </div>
+
+  <!-- New Section for Registered Influencers -->
+  <h3 class="mt-4">Registered Influencers:</h3>
+  <div class="row mt-4">
+    {% if influencers %} {% for influencer in influencers %}
+    <div class="col-md-4 mb-4">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">{{ influencer.user.name }}</h5>
+          <p class="card-text">{{ influencer.rating }}</p>
+          <p class="card-text">{{ influencer.social_networks }}</p>
+          <div class="mt-3">
+            <a
+              href="{{ url_for('view_influencer_details', influencer_id=influencer.id) }}"
+              class="btn btn-view btn-sm"
+              >View</a
+            >
+            <form
+              method="GET"
+              action="{{ url_for('create_add_request', campaign_id=campaign.id) }}"
+            >
+              <input
+                type="hidden"
+                name="influencer_id"
+                value="{{ influencer.id }}"
+              />
+              <input
+                type="hidden"
+                name="campaign_id"
+                value="{{ campaign_id }}"
+              />
+              <button type="submit" class="btn btn-primary">Request</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %} {% else %}
+    <p>No influencers found.</p>
+    {% endif %}
+  </div>
+</div>
+
+<style>
+  .btn-view {
+    background-color: #ffc107;
+    border: none;
+  }
+</style>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends "base.html" %} {% block title %}Campaign Details{% endblock %} {%
+block content %}
+<div class="container mt-5">
+  <h2 class="text-center">{{ campaign.title }}</h2>
+  <div class="campaign-detail mt-4">
+    <p><strong>Description:</strong> {{ campaign.description }}</p>
+    <p><strong>Budget:</strong> ${{ campaign.budget }}</p>
+    <p><strong>Niche:</strong> {{ campaign.niche }}</p>
+    <p><strong>Date:</strong> {{ campaign.date }}</p>
+    {% if campaign.image %}
+    <p>
+      <img
+        src="{{ campaign.image }}"
+        alt="{{ campaign.title }}"
+        class="img-fluid"
+      />
+    </p>
+    {% endif %}
+    <h3 class="mt-4">AdRequest:</h3>
+    <div class="row">
+      {% for request in ad_requests %}
+      <div class="col-md-4 mb-4">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h5 class="card-title">
+              <a href="{{ url_for('request_details', request_id=request.id) }}">
+                {{ request.ad_name }}
+              </a>
+            </h5>
+            <p class="card-text">{{ request.description }}</p>
+            <p class="card-text">
+              <small class="text-muted">{{ request.terms }}</small>
+            </p>
+            <div class="mt-3">
+              <form
+                action="{{ url_for('delete_ad', request_id=request.id) }}"
+                method="POST"
+                style="display: inline"
+              >
+                <button type="submit" class="btn btn-danger btn-sm">
+                  Delete
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="text-center mt-4">
+    <a
+      href="{{ url_for('create_add_request',campaign_id=campaign.id) }} "
+      class="btn btn-primary btn-lg"
+    >
+      <i class="fas fa-plus"></i> Create new ad request
+    </a>
+  </div>
+</div>
+{% endblock %}

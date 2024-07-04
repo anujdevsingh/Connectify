@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Dashboard{% endblock %}</title>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+    <style>
+      body {
+        background-color: #f8f9fa;
+      }
+      .navbar {
+        background-color: #ffffff;
+        border-bottom: 2px solid #dee2e6;
+      }
+      .navbar-nav .nav-link {
+        color: #495057;
+      }
+      .navbar-nav .nav-link:hover {
+        color: #007bff;
+      }
+      .dashboard {
+        padding: 20px;
+      }
+      .card {
+        margin-bottom: 20px;
+        border: none;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+      .card-header {
+        background-color: #007bff;
+        color: white;
+        font-weight: bold;
+      }
+      .btn-view {
+        background-color: #ffc107;
+        border: none;
+      }
+      .btn-flag {
+        background-color: #dc3545;
+        border: none;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-light">
+      <a
+        class="navbar-brand"
+        href="{% if user_role == 'admin' %}
+                                         {{ url_for('admin_dashboard') }}
+                                         {% elif user_role == 'influencer' %}
+                                         {{ url_for('influencer_dashboard') }}
+                                         {% elif user_role == 'sponsor' %}
+                                         {{ url_for('sponsor_dashboard') }}
+                                         {% endif %}"
+      >
+        {% if user_role == 'admin' %} Admin's Dashboard {% elif user_role ==
+        'influencer' %} Influencer's Dashboard {% elif user_role == 'sponsor' %}
+        Sponsor's Dashboard {% endif %}
+      </a>
+      <div class="collapse navbar-collapse">
+        <ul class="navbar-nav ml-auto">
+          <li class="nav-item">
+            <a
+              class="nav-link"
+              href="{% if user_role == 'admin' %}
+                                         {{ url_for('admin_info') }}
+                                         {% elif user_role == 'influencer' %}
+                                         {{ url_for('influencer_profile') }}
+                                         {% elif user_role == 'sponsor' %}
+                                         {{ url_for('sponsor_profile') }}
+                                         {% endif %}"
+            >
+              {% if user_role == 'admin' %} Info {% elif user_role ==
+              'influencer' or user_role == 'sponsor' %} Profile {% endif %}
+            </a>
+          </li>
+          {% if user_role == 'sponsor' %}
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('sponsor_campaigns') }}"
+              >Campaigns</a
+            >
+          </li>
+          {% endif %}
+          <li class="nav-item">
+            <a
+              class="nav-link"
+              href="{% if user_role == 'admin' %}
+                                         {{ url_for('admin_find') }}
+                                         {% elif user_role == 'influencer' %}
+                                         {{ url_for('influencer_find') }}
+                                         {% elif user_role == 'sponsor' %}
+                                         {{ url_for('sponsor_find') }}
+                                         {% endif %}"
+              >Find</a
+            >
+          </li>
+          <li class="nav-item">
+            <a
+              class="nav-link"
+              href="{% if user_role == 'admin' %}
+                                         {{ url_for('admin_stats') }}
+                                         {% elif user_role == 'influencer' %}
+                                         {{ url_for('influencer_stats') }}
+                                         {% elif user_role == 'sponsor' %}
+                                         {{ url_for('sponsor_stats') }}
+                                         {% endif %}"
+              >Stats</a
+            >
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="container dashboard">{% block content %}{% endblock %}</div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  </body>
+</html>

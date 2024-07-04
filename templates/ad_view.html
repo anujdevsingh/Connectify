@@ -1,0 +1,24 @@
+{% extends "base.html" %} {% block title %}Ad Request Details{% endblock %} {%
+block content %}
+<div class="container mt-5">
+  <h2 class="text-center">Ad Request Details</h2>
+  <div class="card mt-4">
+    <div class="card-body">
+      <h4>Ad Name: {{ ad_request.ad_name }}</h4>
+      <p><strong>Description:</strong></p>
+      <p>{{ ad_request.description }}</p>
+      <p><strong>Terms:</strong></p>
+      <p>{{ ad_request.terms }}</p>
+      <p><strong>Payment:</strong> ${{ ad_request.payment }}</p>
+      <p>
+        <strong>Influencer Assigned:</strong> {{ ad_request.influencer.name }}
+      </p>
+      <div class="text-center">
+        <a href="{{ url_for('influencer_profile') }}" class="btn btn-primary"
+          >Back</a
+        >
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

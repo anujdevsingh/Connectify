@@ -1,0 +1,75 @@
+{% extends "base.html" %} {% block title %}Add Campaign{% endblock %} {% block
+content %}
+<div class="container mt-5">
+  <h2 class="text-center">Create Your Next Big Campaign!</h2>
+  <form method="POST" action="{{ url_for('add_campaign') }}" class="mt-4">
+    <div class="form-group">
+      <label for="title">Title</label>
+      <input
+        type="text"
+        class="form-control"
+        id="title"
+        name="title"
+        placeholder="Enter campaign title"
+        required
+      />
+    </div>
+    <div class="form-group">
+      <label for="description">Description</label>
+      <textarea
+        class="form-control"
+        id="description"
+        name="description"
+        rows="3"
+        placeholder="Enter campaign description"
+        required
+      ></textarea>
+    </div>
+    <div class="form-group">
+      <label for="image">Image URL</label>
+      <input
+        type="text"
+        class="form-control"
+        id="image"
+        name="image"
+        placeholder="Enter image URL (optional)"
+      />
+    </div>
+    <div class="form-group">
+      <label for="niche">Niche</label>
+      <input
+        type="text"
+        class="form-control"
+        id="niche"
+        name="niche"
+        placeholder="Enter campaign niche"
+        required
+      />
+    </div>
+    <div class="form-group">
+      <label for="budget">Budget</label>
+      <input
+        type="number"
+        step="0.01"
+        class="form-control"
+        id="budget"
+        name="budget"
+        placeholder="Enter campaign budget"
+        required
+      />
+    </div>
+    <div class="form-group">
+      <label for="date">Date</label>
+      <input type="date" class="form-control" id="date" name="date" required />
+    </div>
+    <button type="submit" class="btn btn-success btn-block">
+      Add Campaign
+    </button>
+    <a
+      href="{{ url_for('sponsor_campaigns') }}"
+      class="btn btn-secondary btn-block"
+      >Cancel</a
+    >
+  </form>
+</div>
+{% endblock %}

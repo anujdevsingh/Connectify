@@ -1,0 +1,65 @@
+{% extends "base.html" %} {% block title %}Influencer Profile{% endblock %} {%
+block content %}
+<div class="row">
+  <div class="col-md-3 text-center">
+    <div
+      class="profile-pic"
+      style="
+        background-color: #d4edda;
+        padding: 50px;
+        border-radius: 50%;
+        margin-bottom: 20px;
+      "
+    >
+      Profile Pic
+    </div>
+    <div>Rating: {{ influencer.rating }}</div>
+    <div>Earnings this month: ${{ influencer.earnings }}</div>
+  </div>
+  <div class="col-md-9">
+    <h2>Welcome {{ influencer.username }}</h2>
+    <h4>Active Campaigns:</h4>
+    {% for campaign in active_campaigns %}
+    <div class="card mb-2">
+      <div class="card-body d-flex justify-content-between align-items-center">
+        <span>{{ campaign.ad_name }} | Progress {{ campaign.progress }}%</span>
+        <a
+          href="{{ url_for('ad_request_detail', request_id=campaign.id) }}"
+          class="btn btn-view"
+          >View</a
+        >
+      </div>
+    </div>
+    {% endfor %}
+    <h4>New Requests:</h4>
+    {% for request in ad_requests %}
+    <div class="container mt-5">
+      <h2 class="text-center">New Requests</h2>
+      {% for request in requests %}
+      <div class="card mt-4">
+        <div class="card-body">
+          <h5 class="card-title">{{ request.ad_name }}</h5>
+          <p class="card-text">{{ request.description }}</p>
+          <p class="card-text">Payment: ${{ request.payment }}</p>
+          <a
+            href="{{ url_for('view_ad_request', id=request.id) }}"
+            class="btn btn-primary"
+            >View</a
+          >
+          <a
+            href="{{ url_for('accept_request', id=request.id) }}"
+            class="btn btn-success"
+            >Accept</a
+          >
+          <a
+            href="{{ url_for('delete_request', id=request.id) }}"
+            class="btn btn-danger"
+            >Reject</a
+          >
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endblock %}
+</div>

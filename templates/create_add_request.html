@@ -1,0 +1,77 @@
+{% extends "base.html" %} {% block title %}Create Ad Request{% endblock %} {%
+block content %}
+<div class="container mt-5">
+  <h2 class="text-center">Create Ad Request</h2>
+  <div class="campaign-detail mt-4">
+    <form
+      method="POST"
+      action="{{ url_for('create_add_request', campaign_id=campaign.id) }}"
+    >
+      <input type="hidden" name="campaign_id" value="{{ campaign.id }}" />
+      <div class="form-group">
+        <label for="ad_name">Ad Name:</label>
+        <input
+          type="text"
+          class="form-control"
+          id="ad_name"
+          name="ad_name"
+          required
+        />
+      </div>
+      <div class="form-group">
+        <label for="description">Description:</label>
+        <textarea
+          class="form-control"
+          id="description"
+          name="description"
+          rows="3"
+          required
+        ></textarea>
+      </div>
+      <div class="form-group">
+        <label for="terms">Terms:</label>
+        <textarea
+          class="form-control"
+          id="terms"
+          name="terms"
+          rows="3"
+          required
+        ></textarea>
+      </div>
+      <div class="form-group">
+        <label for="payment">Payment:</label>
+        <input
+          type="number"
+          class="form-control"
+          id="payment"
+          name="payment"
+          required
+        />
+      </div>
+      <div class="form-group">
+        <label for="influencer">Influencer Assigned:</label>
+        <input
+          type="text"
+          class="form-control"
+          id="influencer"
+          name="influencer"
+          value="{{ influencer_name }}"
+        />
+        <button
+          type="button"
+          class="btn btn-warning mt-2"
+          onclick="window.location.href='{{ url_for('sponsor_find') }}'"
+        >
+          Find
+        </button>
+      </div>
+      <div class="form-group text-center">
+        <button type="submit" class="btn btn-success">Add</button>
+        <a href="{{ url_for('sponsor_campaigns') }}" class="btn btn-danger"
+          >Cancel</a
+        >
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
