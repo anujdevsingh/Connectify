@@ -14,7 +14,9 @@ block content %}
         <strong>Influencer Assigned:</strong> {{ ad_request.influencer.name }}
       </p>
       <div class="text-center">
-        <a href="{{ url_for('influencer_profile') }}" class="btn btn-primary"
+        <a
+          href="{{ url_for('view_campaign_details', campaign_id=ad_request.campaign_id) }}"
+          class="btn btn-primary"
           >Back</a
         >
       </div>

@@ -260,17 +260,35 @@ def influencer_dashboard():
         flash('You need to log in first.', 'warning')
         return redirect(url_for('login'))
     return render_template('influencer_dashboard.html', user_role='influencer')
-
 @app.route('/influencer_profile')
 def influencer_profile():
-    if 'user_id' not in session or session.get('user_role') != 'influencer':
+    if 'user_id' not in session  or session.get('user_role') != 'influencer':
         flash('You need to log in first.', 'warning')
         return redirect(url_for('login'))
-    
-    influencer = db.session.query(Influencer).filter_by(username='User_01').first()
+
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+
+    influencer = user.influencer
+    if not influencer:
+        flash('Influencer profile not found.', 'error')
+        return redirect(url_for('login'))
+
     active_campaigns = influencer.campaigns
     ad_requests = influencer.ad_requests
     return render_template('influencer_profile.html', influencer=influencer, active_campaigns=active_campaigns, ad_requests=ad_requests)
+
+
+# @app.route('/influencer_profile')
+# def influencer_profile():
+#     if 'user_id' not in session or session.get('user_role') != 'influencer':
+#         flash('You need to log in first.', 'warning')
+#         return redirect(url_for('login'))
+    
+#     influencer = db.session.query(Influencer).filter_by(username='User_01').first()
+#     active_campaigns = influencer.campaigns
+#     ad_requests = influencer.ad_requests
+#     return render_template('influencer_profile.html', influencer=influencer, active_campaigns=active_campaigns, ad_requests=ad_requests)
     
     # influencer = Influencer.query.filter_by(user_id=session['user_id']).first()
     # ad_requests = AdRequest.query.filter_by(influencer_id=influencer.id, status='pending').all()
@@ -298,6 +316,14 @@ def reject_request(request_id):
 def veiw_ad(request_id):
     ad_request = AdRequest.query.get_or_404(request_id)
     return render_template('ad_view.html', ad_request=ad_request)
+
+@app.route('/delete_ad/<int:request_id>', methods=['POST'])
+def delete_ad(request_id):
+    ad_request = AdRequest.query.get_or_404(request_id)
+    db.session.delete(ad_request)
+    db.session.commit()
+    flash('Ad request deleted successfully', 'success')
+    return redirect(url_for('campaign_details', campaign_id=ad_request.campaign.id))
 
 @app.route('/view_influencer_details/<int:influencer_id>', methods=['GET'])
 def view_influencer_details(influencer_id):
@@ -436,7 +462,7 @@ def delete_campaign(campaign_id):
 
 
 
-# @app.route('/campaign_details/<int:campaign_id>')
+# @app.route('/campaign_details')
 # def campaign_details():
 #     if 'user_id' not in session or session.get('user_role') != 'sponsor':
 #         flash('You need to log in first.', 'warning')
@@ -486,7 +512,7 @@ def create_add_request(campaign_id):
         description = request.form['description']
         terms = request.form['terms']
         payment = request.form['payment']
-        influencer_name = request.form['influencer'],
+        influencer_name = request.form['influencer']
         
         sponsor = Sponsor.query.filter_by(user_id=session['user_id']).first()
         influencer = Influencer.query.join(User).filter(User.name == influencer_name).first()

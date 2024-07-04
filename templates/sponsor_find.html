@@ -65,6 +65,7 @@
               class="btn btn-view btn-sm"
               >View</a
             >
+            {% if campaigns %} {% for campaign in campaigns %}
             <form
               method="GET"
               action="{{ url_for('create_add_request', campaign_id=campaign.id) }}"
@@ -74,11 +75,7 @@
                 name="influencer_id"
                 value="{{ influencer.id }}"
               />
-              <input
-                type="hidden"
-                name="campaign_id"
-                value="{{ campaign_id }}"
-              />
+              {% endfor %} {% endif %}
               <button type="submit" class="btn btn-primary">Request</button>
             </form>
           </div>
