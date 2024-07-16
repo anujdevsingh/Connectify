@@ -25,7 +25,7 @@ class User(db.Model):
     is_admin = db.Column(db.Boolean, default=False)
     
 
-    sponsor = db.relationship('Sponsor', backref='user', uselist=False)
+    sponsor = db.relationship('Sponsor', back_populates='user', uselist=False)
     influencer = db.relationship('Influencer', back_populates='user', uselist=False)
 
     def __repr__(self):
@@ -36,6 +36,7 @@ class Sponsor(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     industry = db.Column(db.String, nullable=False)
+    user = db.relationship('User', back_populates='sponsor')
     ad_requests = db.relationship('AdRequest', backref='sponsor', lazy=True)
     
     def __repr__(self):
@@ -54,7 +55,7 @@ class Influencer(db.Model):
     
     user = db.relationship('User', back_populates='influencer')
     campaigns = db.relationship('Campaign', back_populates='influencer')
-
+    
     def __repr__(self):
         return f'<Influencer {self.user.username}>'
     
@@ -65,10 +66,13 @@ class Campaign(db.Model):
     image = db.Column(db.String(200), nullable=True)
     niche = db.Column(db.String(50), nullable=False)
     budget = db.Column(db.Float, nullable=False)  # New column for budget
-    date = db.Column(db.DateTime, default=datetime.utcnow)
+    is_public = db.Column(db.Boolean, nullable=False, default=True)
+    start_date = db.Column(db.DateTime, nullable=False)
+    end_date = db.Column(db.DateTime, nullable=False)
     influencer_id = db.Column(db.Integer, db.ForeignKey('influencers.id'))
     influencer = db.relationship('Influencer', back_populates='campaigns')
     sponsor_id = db.Column(db.Integer, db.ForeignKey('sponsors.id'), nullable=False)
+    
 
     sponsor = db.relationship('Sponsor', backref='campaigns')
 
@@ -79,11 +83,12 @@ class AdRequest(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     ad_name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.String(500), nullable=False)
-    terms = db.Column(db.String(500), nullable=False)
+    terms = db.Column(db.String(500), nullable=True)
     payment = db.Column(db.Float, nullable=False)
     influencer_name = db.Column(db.String(100), nullable=True)
     influencer_id = db.Column(db.Integer, db.ForeignKey('influencers.id'), nullable=True)
     campaign_id = db.Column(db.Integer, db.ForeignKey('campaign.id'), nullable=False)
+    campaign = db.relationship('Campaign', backref='ad_requests')  
     # influencer = db.relationship('Influencer', backref='ad_requests')
     sponsor_id = db.Column(db.Integer, db.ForeignKey('sponsors.id'), nullable=False)
     status = db.Column(db.String(50), default='pending')
@@ -274,7 +279,7 @@ def influencer_profile():
     if not influencer:
         flash('Influencer profile not found.', 'error')
         return redirect(url_for('login'))
-    new_requests = AdRequest.query.filter_by(status='new', influencer_id=influencer.id).all()
+    new_requests = AdRequest.query.filter_by(influencer_id=influencer.id, status='pending').all()
     # active_campaigns = influencer.campaigns.query.filter_by(status='accepted', influencer_id=influencer.id).all()
     active_campaigns = AdRequest.query.filter_by(status='accepted', influencer_id=influencer.id).all()
     ad_requests = influencer.ad_requests
@@ -316,10 +321,11 @@ def view_campaign(campaign_id):
 @app.route('/delete_ad/<int:request_id>', methods=['POST'])
 def delete_ad(request_id):
     ad_request = AdRequest.query.get_or_404(request_id)
+    campaign_id = ad_request.campaign_id  # Retrieve campaign_id from ad_request
     db.session.delete(ad_request)
     db.session.commit()
     flash('Ad request deleted successfully', 'success')
-    return redirect(url_for('campaign_details', campaign_id=ad_request.campaign.id))
+    return redirect(url_for('view_campaign_details', campaign_id=campaign_id))
 
 @app.route('/view_influencer_details/<int:influencer_id>', methods=['GET'])
 def view_influencer_details(influencer_id):
@@ -334,9 +340,9 @@ def influencer_find():
     
     search_query = request.args.get('search')
     if search_query:
-        campaigns = Campaign.query.filter(Campaign.title.ilike(f'%{search_query}%')).all()
+        campaigns = Campaign.query.filter( Campaign.is_public == True,Campaign.title.ilike(f'%{search_query}%')).all()
     else:
-        campaigns = Campaign.query.all()
+        campaigns = Campaign.query.filter( Campaign.is_public == True).all()
 
     return render_template('influencer_find.html', campaigns=campaigns, user_role='influencer')
 
@@ -349,18 +355,32 @@ def request_campaign(campaign_id):
     
     
     influencer_id = session['user_id']
+    influencer_name =  Influencer.user.username
     campaign = Campaign.query.get_or_404(campaign_id)
     
-    # Create a new ad request
-    ad_request = AdRequest(
-        campaign_id=campaign.id,
-        status='pending' # Set the status to 'pending'
-    )
-    db.session.add(ad_request)
-    db.session.commit()
+     # Check if an ad request already exists for this campaign and influencer
+    existing_request = AdRequest.query.filter_by(influencer_id=influencer_id, campaign_id=campaign_id).first()
+    if existing_request:
+        flash('You have already requested this campaign.', 'warning')
+    else:
+        # Create a new ad request
+        ad_request = AdRequest(
+            ad_name=campaign.title,  # Assuming ad_name corresponds to campaign title
+            description=campaign.description,  # Assuming you want to copy campaign description
+            payment=campaign.budget,  # Assuming payment is the budget of the campaign
+            influencer_name=influencer_name,  # Assuming you store the user's name in the session
+            influencer_id=influencer_id,
+            campaign_id=campaign_id,
+            sponsor_id=campaign.sponsor_id,  # Assuming campaign has a sponsor_id
+            status='pending',  # Set the status to 'pending'
+            created_at=datetime.utcnow()  # Set the current time
+        )
+        db.session.add(ad_request)
+        db.session.commit()
 
-    flash('Campaign requested successfully!', 'success')
-    return redirect(url_for('influencer_find'), influencer_id=influencer_id ,campaign_id=campaign_id)
+        flash('Campaign requested successfully!', 'success')
+
+    return redirect(url_for('influencer_find') ,influencer_name=influencer_name)
 
 @app.route('/influencer_stats')
 def influencer_stats():
@@ -381,9 +401,15 @@ def sponsor_profile():
     if 'user_id' not in session or session.get('user_role') != 'sponsor':
         flash('You need to log in first.', 'warning')
         return redirect(url_for('login'))
-    return render_template('sponsor_profile.html', user_role='sponsor')
 
-from flask import request
+    sponsor_id = session.get('user_id')
+    sponsor = Sponsor.query.filter_by(user_id=sponsor_id).first()
+    new_requests = AdRequest.query.filter_by(sponsor_id=sponsor_id, status='pending').all()
+    campaigns = Campaign.query.filter_by(sponsor_id=sponsor_id).all()
+
+    return render_template('sponsor_profile.html', user_role='sponsor', new_requests=new_requests, sponsor=sponsor, campaigns=campaigns)
+
+
 
 @app.route('/sponsor_campaigns')
 def sponsor_campaigns():
@@ -413,14 +439,12 @@ def add_campaign():
         description = request.form['description']
         image = request.form['image']
         niche = request.form['niche']
-        date_str = request.form['date']
         budget = request.form['budget']
+        is_public = request.form.get('is_public') == 'on'
+        start_date = request.form['start_date']
+        end_date = request.form['end_date']
         
-        try:
-            date = datetime.strptime(date_str, '%Y-%m-%d')
-        except ValueError:
-            flash('Invalid date format. Please use YYYY-MM-DD.', 'danger')
-            return redirect(url_for('add_campaign'))
+        
 
         sponsor = Sponsor.query.filter_by(user_id=session['user_id']).first()
 
@@ -429,7 +453,9 @@ def add_campaign():
             description=description,
             image=image,
             niche=niche,
-            date=date,
+            is_public=is_public,
+            start_date=datetime.strptime(start_date, '%Y-%m-%d'),
+            end_date=datetime.strptime(end_date, '%Y-%m-%d'),
             budget=budget,
             sponsor_id=sponsor.id
         )
@@ -456,10 +482,13 @@ def update_campaign(campaign_id):
         campaign.image = request.form['image']
         campaign.niche = request.form['niche']
         campaign.budget = request.form['budget']  # Add budget update if necessary
-        date_str = request.form['date']  # Add date update if necessary
+        campaign.start_date = datetime.strptime(request.form['start_date'], '%Y-%m-%d')
+        campaign.end_date = datetime.strptime(request.form['end_date'], '%Y-%m-%d')
+        campaign.is_public = request.form.get('is_public') == 'on'  # Add date update if necessary
+        
         
         try:
-            campaign.date = datetime.strptime(date_str, '%Y-%m-%d')
+            campaign.date = datetime.strptime(request.form['start_date'], '%Y-%m-%d')
         except ValueError:
             flash('Invalid date format. Please use YYYY-MM-DD.', 'danger')
             return redirect(url_for('update_campaign', campaign_id=campaign_id))
@@ -552,6 +581,7 @@ def create_add_request(campaign_id):
             terms=terms, 
             payment=payment, 
             sponsor_id=sponsor.id,
+            influencer_name=influencer_name,
             influencer_id=influencer.id,
             campaign_id=campaign_id,
         )  
@@ -562,7 +592,7 @@ def create_add_request(campaign_id):
         flash('Ad request created successfully!', 'success')
         return redirect(url_for('sponsor_campaigns'))
 
-    return render_template('create_add_request.html', user_role='sponsor', influencer_name=influencer_name,campaign=campaign)
+    return render_template('create_add_request.html', user_role='sponsor',influencer_name=influencer_name, campaign=campaign)
 
 
 

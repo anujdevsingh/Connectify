@@ -33,7 +33,7 @@ block content %}
     {% endfor %}
     <div class="container mt-5">
       <h2 class="text-center">New Requests</h2>
-      {% for request in ad_requests %} {% if request.status == 'new' %}
+      {% for request in new_requests %} {% if request.status == 'pending' %}
       <div class="card mt-4">
         <div class="card-body">
           <h5 class="card-title">{{ request.ad_name }}</h5>

@@ -6,7 +6,13 @@ block content %}
     <p><strong>Description:</strong> {{ campaign.description }}</p>
     <p><strong>Budget:</strong> ${{ campaign.budget }}</p>
     <p><strong>Niche:</strong> {{ campaign.niche }}</p>
-    <p><strong>Date:</strong> {{ campaign.date }}</p>
+    <p>
+      <strong>Start Date:</strong> {{ campaign.start_date.strftime("%Y-%m-%d")
+      }}
+    </p>
+    <p>
+      <strong>End Date:</strong> {{ campaign.end_date.strftime("%Y-%m-%d") }}
+    </p>
     {% if campaign.image %}
     <p>
       <img

@@ -11,7 +11,7 @@ block content %}
       <p>{{ ad_request.terms }}</p>
       <p><strong>Payment:</strong> ${{ ad_request.payment }}</p>
       <p>
-        <strong>Influencer Assigned:</strong> {{ ad_request.influencer.name }}
+        <strong>Influencer Assigned:</strong> {{ ad_request.influencer_name }}
       </p>
       <div class="text-center">
         {% if user_role == 'influencer' %}

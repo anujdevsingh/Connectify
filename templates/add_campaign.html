@@ -59,8 +59,34 @@ content %}
       />
     </div>
     <div class="form-group">
-      <label for="date">Date</label>
-      <input type="date" class="form-control" id="date" name="date" required />
+      <label for="start_date">Start Date</label>
+      <input
+        type="date"
+        class="form-control"
+        id="start_date"
+        name="start_date"
+        required
+      />
+    </div>
+    <div class="form-group">
+      <label for="end_date">End Date</label>
+      <input
+        type="date"
+        class="form-control"
+        id="end_date"
+        name="end_date"
+        required
+      />
+    </div>
+    <div class="form-group form-check">
+      <input
+        type="checkbox"
+        class="form-check-input"
+        id="is_public"
+        name="is_public"
+        checked
+      />
+      <label class="form-check-label" for="is_public">Public</label>
     </div>
     <button type="submit" class="btn btn-success btn-block">
       Add Campaign
