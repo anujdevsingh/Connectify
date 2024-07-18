@@ -58,6 +58,12 @@ block content %}
           >
             <button type="submit" class="btn btn-danger">Reject</button>
           </form>
+          <form
+            action="{{ url_for('modify_request', request_id=request.id) }}"
+            class="d-inline"
+          >
+            <button class="btn btn-secondary">Modify</button>
+          </form>
         </div>
       </div>
       {% endif %} {% endfor %}

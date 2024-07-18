@@ -1,0 +1,90 @@
+{% extends "base.html" %} {% block title %}Modify Request{% endblock %} {% block
+content %}
+<div class="container mt-5">
+  <h2 class="text-center">Modify Request</h2>
+  <div class="campaign-detail mt-4">
+    <form
+      method="POST"
+      action="{{ url_for('modify_request', request_id=request.id) }}"
+    >
+      <div class="form-group">
+        <label for="ad_name">Ad Name:</label>
+        <input
+          type="text"
+          class="form-control"
+          id="ad_name"
+          name="ad_name"
+          value="{{ request.ad_name }}"
+          readonly
+        />
+      </div>
+      <div class="form-group">
+        <label for="description">Description:</label>
+        <textarea
+          class="form-control"
+          id="description"
+          name="description"
+          rows="3"
+          readonly
+        >
+{{ request.description }}</textarea
+        >
+      </div>
+      <div class="form-group">
+        <label for="terms">Original Terms:</label>
+        <textarea
+          class="form-control"
+          id="terms"
+          name="terms"
+          rows="3"
+          readonly
+        >
+{{ request.terms }}</textarea
+        >
+      </div>
+      <div class="form-group">
+        <label for="payment">Original Payment:</label>
+        <input
+          type="number"
+          class="form-control"
+          id="payment"
+          name="payment"
+          value="{{ request.payment }}"
+          readonly
+        />
+      </div>
+      <div class="form-group">
+        <label for="modified_terms">Modified Terms:</label>
+        <textarea
+          class="form-control"
+          id="modified_terms"
+          name="modified_terms"
+          rows="3"
+          required
+        >
+{{ request.modified_terms }}</textarea
+        >
+      </div>
+      <div class="form-group">
+        <label for="modified_payment">Modified Payment:</label>
+        <input
+          type="number"
+          class="form-control"
+          id="modified_payment"
+          name="modified_payment"
+          value="{{ request.modified_payment }}"
+          required
+        />
+      </div>
+      <div class="form-group text-center">
+        <button type="submit" class="btn btn-success">
+          Submit Modifications
+        </button>
+        <a href="{{ url_for('influencer_profile') }}" class="btn btn-danger"
+          >Cancel</a
+        >
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

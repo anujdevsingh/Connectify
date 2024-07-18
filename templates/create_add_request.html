@@ -8,6 +8,7 @@ block content %}
       action="{{ url_for('create_add_request', campaign_id=campaign.id) }}"
     >
       <input type="hidden" name="campaign_id" value="{{ campaign.id }}" />
+
       <div class="form-group">
         <label for="ad_name">Ad Name:</label>
         <input

@@ -6,28 +6,18 @@ block content %}
   <!-- Section for Campaigns -->
   <div class="mt-4">
     <h3>Active Campaigns</h3>
-    {% if campaigns %}
+    {% if active_campaigns %}
     <div class="list-group">
-      {% for campaign in campaigns %}
+      {% for request in active_campaigns %}
       <div class="list-group-item">
-        <h5 class="mb-1">{{ campaign.title }}</h5>
-        <p class="mb-1">{{ campaign.description }}</p>
-        <small
-          >Niche: {{ campaign.niche }} | Budget: ${{ campaign.budget }}</small
-        >
+        <h5 class="mb-1">{{ request.ad_name }}</h5>
+        <p class="mb-1">{{ request.influencer_name }}</p>
         <div class="mt-2">
           <a
-            href="{{ url_for('update_campaign', campaign_id=campaign.id) }}"
-            class="btn btn-primary btn-sm"
-            >Edit</a
+            href="{{ url_for('view_ad', request_id=request.id) }}"
+            class="btn btn-view btn-sm"
+            >view</a
           >
-          <form
-            action="{{ url_for('delete_campaign', campaign_id=campaign.id) }}"
-            method="post"
-            class="d-inline"
-          >
-            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-          </form>
         </div>
       </div>
       {% endfor %}
@@ -37,37 +27,67 @@ block content %}
     {% endif %}
   </div>
 
-  <!-- Section for New Requests -->
-  <div class="mt-4">
-    <h3>New Requests</h3>
-    {% if new_requests %}
-    <div class="list-group">
-      {% for request in new_requests %} {% if request.status == 'pending' %}
-      <div class="list-group-item">
-        <h5 class="mb-1">{{ request.ad_name }}</h5>
-        <small>Requested by: {{ request.influencer_name }}</small>
-        <div class="mt-2">
-          <form
-            action="{{ url_for('accept_request', request_id=request.id) }}"
-            method="post"
-            class="d-inline"
-          >
-            <button type="submit" class="btn btn-success btn-sm">Accept</button>
-          </form>
-          <form
-            action="{{ url_for('reject_request', request_id=request.id) }}"
-            method="post"
-            class="d-inline"
-          >
-            <button type="submit" class="btn btn-danger btn-sm">Reject</button>
-          </form>
-        </div>
+  <!-- Section for pending Requests -->
+  <div class="container mt-5">
+    <h2 class="text-center">Pending Requests</h2>
+    {% for request in pending_requests %}
+    <div class="card mt-4">
+      <div class="card-body">
+        <h5 class="card-title">{{ request.ad_name }}</h5>
+        <p class="card-text">{{ request.description }}</p>
+        <p class="card-text">Proposed Payment: ${{ request.payment }}</p>
+        <p class="card-text">Proposed Terms: {{ request.terms }}</p>
+        {% if request.modified_terms or request.modified_payment %}
+        <hr>
+        <h5 class="card-title">Modified Request</h5>
+        <p class="card-text">Modified Payment: ${{ request.modified_payment }}</p>
+        <p class="card-text">Modified Terms: {{ request.modified_terms }}</p>
+        <form
+          action="{{ url_for('approve_modification', request_id=request.id) }}"
+          method="post"
+          class="d-inline"
+        >
+          <button type="submit" class="btn btn-success">Approve</button>
+        </form>
+        <form
+          action="{{ url_for('reject_modification', request_id=request.id) }}"
+          method="post"
+          class="d-inline"
+        >
+          <button type="submit" class="btn btn-danger">Reject</button>
+        </form>
+        {% else %}
+        <a
+          href="{{ url_for('view_ad', request_id=request.id) }}"
+          class="btn btn-primary"
+          >View</a
+        >
+        <form
+          action="{{ url_for('accept_request', request_id=request.id) }}"
+          method="post"
+          class="d-inline"
+        >
+          <button type="submit" class="btn btn-success">Accept</button>
+        </form>
+        <form
+          action="{{ url_for('reject_request', request_id=request.id) }}"
+          method="post"
+          class="d-inline"
+        >
+          <button type="submit" class="btn btn-danger">Reject</button>
+        </form>
+        {% endif %}
       </div>
-      {% endif %}{% endfor %}
     </div>
-    {% else %}
-    <p>No new requests.</p>
-    {% endif %}
+    {% endfor %}
   </div>
 </div>
+</div>
+
+<style>
+  .btn-view {
+    background-color: #ffc107;
+    border: none;
+  }
+</style>
 {% endblock %}
