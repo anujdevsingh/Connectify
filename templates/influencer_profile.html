@@ -13,8 +13,16 @@ block content %}
     >
       Profile Pic
     </div>
-    <div>Rating: {{ influencer.rating }}</div>
-    <div>Earnings this month: ${{ influencer.earnings }}</div>
+    <div>Category: {{ influencer.category }}</div>
+    <div>Niche: {{ influencer.niche }}</div>
+    <div>Reach: {{ influencer.reach }}</div>
+    <div class="mt-4">
+      <a
+        href="{{ url_for('edit_influencer_profile',influencer_id=influencer.id) }}"
+        class="btn btn-warning"
+        >Edit Profile</a
+      >
+    </div>
   </div>
   <div class="col-md-9">
     <h2>Welcome {{ influencer.user.username }}</h2>

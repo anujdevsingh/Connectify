@@ -47,10 +47,11 @@ class Influencer(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     profile_pic = db.Column(db.String(100), default='default_profile_pic.jpg')
-    rating = db.Column(db.Float, default=5.0)
-    earnings = db.Column(db.Float, default=0.0)
+    category = db.Column(db.String(100), nullable=False)  
+    niche = db.Column(db.String(100), nullable=False) 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     social_networks = db.Column(db.String, nullable=True)
+    reach = db.Column(db.String(100), nullable=False)
     ad_requests = db.relationship('AdRequest', backref='influencer', lazy=True)
     
     user = db.relationship('User', back_populates='influencer')
@@ -182,6 +183,9 @@ def register_influencer():
         username = request.form['username']
         email = request.form['email']
         password = request.form['password']
+        category = request.form['category']
+        niche = request.form['niche']
+        reach = request.form['reach']
         social_networks = request.form.getlist('social')
 
         existing_user = User.query.filter((User.username == username) | (User.email == email)).first()
@@ -190,7 +194,7 @@ def register_influencer():
             return redirect(url_for('register_influencer'))
 
         user = User(name=name, username=username, email=email, password=password)
-        influencer = Influencer(social_networks=",".join(social_networks), user=user)
+        influencer = Influencer(social_networks=",".join(social_networks), user=user , category=category, niche=niche, reach=reach)
         db.session.add(user)
         db.session.add(influencer)
 
@@ -285,10 +289,43 @@ def influencer_profile():
         return redirect(url_for('login'))
     new_requests = AdRequest.query.filter_by(influencer_id=influencer.id, status='pending').all()
     # active_campaigns = influencer.campaigns.query.filter_by(status='accepted', influencer_id=influencer.id).all()
-    active_campaigns = AdRequest.query.filter_by(influencer_id=influencer.id,status='accepted').all()
+    active_campaigns = AdRequest.query.filter_by(influencer_id=influencer.user_id,status='accepted').all()
     ad_requests = influencer.ad_requests
     return render_template('influencer_profile.html', influencer=influencer, new_requests=new_requests, active_campaigns=active_campaigns, ad_requests=ad_requests, user_role='influencer')
 
+
+@app.route('/edit_influencer_profile/<int:influencer_id>', methods=['GET', 'POST'])
+def edit_influencer_profile(influencer_id):
+    # Ensure the user is logged in and has the correct role
+    if 'user_id' not in session or session.get('user_role') != 'influencer':
+        flash('You need to log in first.', 'warning')
+        return redirect(url_for('login'))
+
+    # Fetch the influencer by ID
+    influencer = Influencer.query.get_or_404(influencer_id)
+    user = influencer.user
+
+    if request.method == 'POST':
+        name = request.form['name']
+        username = request.form['username']
+        email = request.form['email']
+        social_networks = request.form.getlist('social')
+
+        # Update influencer profile
+        user.name = name
+        user.username = username
+        user.email = email
+        influencer.social_networks = ",".join(social_networks)
+
+        try:
+            db.session.commit()
+            flash('Profile updated successfully!', 'success')
+            return redirect(url_for('influencer_profile'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error updating profile: {str(e)}', 'danger')
+
+    return render_template('edit_influencer_profile.html', influencer=influencer, user=user, user_role='influencer')
 @app.route('/accept_request/<int:request_id>', methods=['POST'])
 def accept_request(request_id):
     ad_request = AdRequest.query.get_or_404(request_id)

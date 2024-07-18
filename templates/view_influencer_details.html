@@ -3,10 +3,11 @@ block content %}
 <div class="container mt-5">
   <h1>Influencer Details</h1>
   <p>Name: {{ influencer.user.name }}</p>
-  <p>Username: {{ influencer.user.username }}</p>
   <p>Email: {{ influencer.user.email }}</p>
   <p>Social Networks: {{ influencer.social_networks }}</p>
-  <p>Rating: {{ influencer.rating }}</p>
+  <p>Category: {{ influencer.category }}</p>
+  <p>Niche: {{ influencer.niche }}</p>
+  <p>Reach: {{ influencer.reach }}</p>
   <a href="{{ url_for('sponsor_find') }}">Back to Search</a>
 </div>
 {% endblock %}
