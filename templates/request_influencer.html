@@ -1,0 +1,41 @@
+{% extends "base.html" %} {% block title %}Find{% endblock %} {% block content
+%}
+<div clas="dashboard">
+  <h3 class="mt-4">Registered Influencers:</h3>
+  <div class="row mt-4">
+    {% if influencers %} {% for influencer in influencers %}
+    <div class="col-md-4 mb-4">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">{{ influencer.user.name }}</h5>
+          <p class="card-text">{{ influencer.category }}</p>
+          <p class="card-text">{{ influencer.social_networks }}</p>
+          <div class="mt-3">
+            <a
+              href="{{ url_for('view_influencer_details', influencer_id=influencer.id) }}"
+              class="btn btn-view btn-sm"
+              >View</a
+            >
+
+            <form
+              method="GET"
+              action="{{ url_for('create_add_request', campaign_id=campaign_id) }}"
+            >
+              <input
+                type="hidden"
+                name="influencer_id"
+                value="{{ influencer.id }}"
+              />
+
+              <button type="submit" class="btn btn-primary">Request</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %} {% else %}
+    <p>No influencers found.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

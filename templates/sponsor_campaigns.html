@@ -4,7 +4,7 @@ block content %}
   <div class="text-center">
     <h2>Sponsor Campaigns</h2>
     <a
-      href="{{ url_for('add_campaign') }}"
+      href="{{ url_for('add_campaign',sponsor_id=sponsor.id) }}"
       class="btn btn-primary rounded-circle shadow-lg add-campaign-btn"
     >
       <span style="font-size: 3rem">+</span>

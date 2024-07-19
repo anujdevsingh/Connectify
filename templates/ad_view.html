@@ -19,9 +19,7 @@ block content %}
           >Back</a
         >
         {% elif user_role == 'sponsor' %}
-        <a
-          href="{{ url_for('view_campaign_details', campaign_id=ad_request.campaign_id) }}"
-          class="btn btn-primary"
+        <a href="{{ url_for('sponsor_profile') }}" class="btn btn-primary"
           >Back</a
         >
         {% elif user_role == 'admin' %}

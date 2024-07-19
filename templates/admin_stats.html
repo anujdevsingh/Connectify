@@ -1,4 +1,90 @@
-{% extends "base.html" %} {% block title %}Admin Info{% endblock %} {% block
-content %}
-<h3>Welcome to admin statistic page</h3>
+{% extends "base.html" %} {% block title %}Admin Statistics{% endblock %} {%
+block content %}
+<div class="container mt-4">
+  <h2>Admin Statistics</h2>
+  <div class="row">
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Total Campaigns</h5>
+          <p class="card-text">{{ total_campaigns }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Total Influencers</h5>
+          <p class="card-text">{{ total_influencers }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Total Sponsors</h5>
+          <p class="card-text">{{ total_sponsors }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row mt-4">
+    <div class="col-md-6">
+      <h3>Budget Utilization</h3>
+      <canvas id="budgetUtilizationChart"></canvas>
+    </div>
+  </div>
+  <div class="row mt-4">
+    <div class="col-md-6">
+      <h3>Campaign Status</h3>
+      <canvas id="campaignStatusChart"></canvas>
+    </div>
+    <div class="col-md-6">
+      <h3>Influencer Reach</h3>
+      <canvas id="influencerReachChart"></canvas>
+    </div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  var budgetUtilizationCtx = document.getElementById('budgetUtilizationChart').getContext('2d');
+  var budgetUtilizationChart = new Chart(budgetUtilizationCtx, {
+      type: 'pie',
+      data: {{ budget_utilization_data | tojson }},
+      options: {
+          responsive: true
+      }
+  });
+
+  var campaignStatusCtx = document.getElementById('campaignStatusChart').getContext('2d');
+  var campaignStatusChart = new Chart(campaignStatusCtx, {
+      type: 'bar',
+      data: {{ campaign_status_data | tojson }},
+      options: {
+          responsive: true,
+          scales: {
+              y: {
+                  beginAtZero: true,
+                  ticks: {
+                    stepSize: 1  // Ensure y-axis increments by 1
+                }
+              }
+          }
+      }
+  });
+
+  var influencerReachCtx = document.getElementById('influencerReachChart').getContext('2d');
+  var influencerReachChart = new Chart(influencerReachCtx, {
+      type: 'line',
+      data: {{ influencer_reach_data | tojson }},
+      options: {
+          responsive: true,
+          scales: {
+              y: {
+                  beginAtZero: true
+              }
+          }
+      }
+  });
+</script>
 {% endblock %}

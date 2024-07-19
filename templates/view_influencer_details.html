@@ -8,6 +8,12 @@ block content %}
   <p>Category: {{ influencer.category }}</p>
   <p>Niche: {{ influencer.niche }}</p>
   <p>Reach: {{ influencer.reach }}</p>
-  <a href="{{ url_for('sponsor_find') }}">Back to Search</a>
+  <div class="text-center">
+    {% if user_role == 'sponsor' %}
+    <a href="{{ url_for('sponsor_find') }}" class="btn btn-primary">Back</a>
+    {% elif user_role == 'admin' %}
+    <a href="{{ url_for('admin_find') }}" class="btn btn-primary">Back</a>
+    {% endif %}
+  </div>
 </div>
 {% endblock %}
