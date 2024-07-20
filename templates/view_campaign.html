@@ -24,13 +24,13 @@ block content %}
     {% endif %}
     <div class="mt-3">
       {% if user_role == 'admin' %}
-      <a href="{{ url_for('admin_find') }}" class="btn btn-primary"
-        >Back to Admin Find</a
-      >
+      <a href="{{ url_for('admin_find') }}" class="btn btn-primary">Back</a>
       {% elif user_role == 'influencer' %}
       <a href="{{ url_for('influencer_find') }}" class="btn btn-primary"
-        >Back to Find Campaigns</a
+        >Back</a
       >
+      {% elif user_role == 'sponsor' %}
+      <a href="{{ url_for('sponsor_find') }}" class="btn btn-primary">Back</a>
       {% endif %}
     </div>
   </div>

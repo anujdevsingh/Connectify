@@ -46,13 +46,13 @@ block content %}
       />
     </div>
     <div class="form-group">
-      <label for="influencer_name">Influencer Assigned:</label>
+      <label for="influencer">Influencer Assigned:</label>
       <input
         type="text"
         class="form-control"
-        id="influencer_name"
-        name="influencer_name"
-        value="{{ influencer_name }}"
+        id="influencer"
+        name="influencer"
+        value="{{ ad_request.influencer_name }}"
       />
       <a
         href="{{url_for('request_influencer', source='update', campaign_id=ad_request.campaign_id)}}"
@@ -64,7 +64,9 @@ block content %}
       <button type="submit" class="btn btn-success">
         Submit Modifications
       </button>
-      <a href="{{ url_for('sponsor_campaigns') }}" class="btn btn-danger"
+      <a
+        href="{{ url_for('campaign_details', campaign_id=ad_request.campaign_id) }}"
+        class="btn btn-danger"
         >Cancel</a
       >
     </div>

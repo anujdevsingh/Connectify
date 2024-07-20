@@ -501,14 +501,15 @@ def reject_request(request_id):
     elif user_role == 'influencer':
         return redirect(url_for('influencer_profile'))
 
+@app.route('/ad_view/<string:source>/<int:request_id>', methods=['GET'])
 @app.route('/ad_view/<int:request_id>', methods=['GET'])
-def view_ad(request_id):
+def view_ad(request_id,source='None'):
     if 'user_id' not in session:
         flash('You need to log in first.', 'warning')
         return redirect(url_for('login'))
     ad_request = AdRequest.query.get_or_404(request_id)
     user_role = session.get('user_role')
-    return render_template('ad_view.html', ad_request=ad_request, user_role=user_role)
+    return render_template('ad_view.html', source=source,ad_request=ad_request, user_role=user_role)
 @app.route('/view_campaign/<int:campaign_id>', methods=['GET'])
 def view_campaign(campaign_id):
     if 'user_id' not in session:
@@ -526,7 +527,7 @@ def delete_ad(request_id):
     db.session.delete(ad_request)
     db.session.commit()
     flash('Ad request deleted successfully', 'success')
-    return redirect(url_for('view_campaign_details', campaign_id=campaign_id, user_role=user_role))
+    return redirect(url_for('campaign_details', campaign_id=campaign_id))
 @app.route('/modify_request/<int:request_id>', methods=['GET', 'POST'])
 def modify_request(request_id):
     if 'user_id' not in session or session.get('user_role') != 'influencer':
@@ -769,7 +770,7 @@ def add_campaign():
     if 'user_id' not in session or session.get('user_role') != 'sponsor':
         flash('You need to log in first.', 'warning')
         return redirect(url_for('login'))
-
+    user_role = session.get('user_role')
     if request.method == 'POST':
         title = request.form.get('title')
         description = request.form.get('description')
@@ -814,7 +815,7 @@ def add_campaign():
             flash(f'Error adding campaign: {str(e)}', 'danger')
             return redirect(url_for('add_campaign'))
 
-    return render_template('add_campaign.html', user_role='sponsor')
+    return render_template('add_campaign.html', user_role=user_role)
 
 
 @app.route('/update_campaign/<int:campaign_id>', methods=['GET', 'POST'])
@@ -841,8 +842,6 @@ def update_campaign(campaign_id):
         except ValueError:
             flash('Invalid date format. Please use YYYY-MM-DD.', 'danger')
             return redirect(url_for('update_campaign', campaign_id=campaign_id))
-        
-        campaign.budget = request.form['budget']
 
         db.session.commit()
         flash('Campaign updated successfully!', 'success')
@@ -870,8 +869,8 @@ def delete_campaign(campaign_id):
 @app.route('/campaign_details/<int:campaign_id>', methods=['GET','POST'] )
 def campaign_details(campaign_id):
     campaign= Campaign.query.get_or_404(campaign_id)
+    user_role = session.get('user_role')
     
-    sponsor = Sponsor.query.filter_by(user_id=session['user_id']).first()
     
     # Fetch ad requests associated with the campaign
     ad_requests = AdRequest.query.filter_by(campaign_id=campaign.id).all()
@@ -881,7 +880,7 @@ def campaign_details(campaign_id):
     #fetch all the influencer
     influencers=Influencer.query.all()
     
-    return render_template('campaign_details.html', campaign=campaign, ad_requests=ad_requests,  influencers=influencers ,user_role='sponsor')
+    return render_template('campaign_details.html', campaign=campaign, ad_requests=ad_requests,  influencers=influencers ,user_role=user_role)
 
 
 @app.route('/update_adrequest/<int:campaign_id>', methods=['GET', 'POST'])
@@ -890,13 +889,7 @@ def update_adrequest(campaign_id):
         flash('You need to log in first.', 'warning')
         return redirect(url_for('login'))
     
-    influencer_name = request.form.get('influencer_name')
-    if request.method == 'GET':
-        influencer_id = request.args.get('influencer_id')
-        if influencer_id:
-            influencer = db.session.get(Influencer, influencer_id)
-            if influencer:
-                influencer_name = influencer.user.name
+    
     
     user_role = session.get('user_role')
     
@@ -905,17 +898,25 @@ def update_adrequest(campaign_id):
     if not ad_request:
         flash('Ad request not found.', 'danger')
         return redirect(url_for('sponsor_campaigns'))
-    
+    influencer_name = ad_request.influencer_name
+    if request.method == 'GET':
+            influencer_id = request.args.get('influencer_id')
+            if influencer_id:
+               influencer = db.session.get(Influencer, influencer_id)
+               if influencer:
+                  ad_request.influencer_name = influencer.user.name
     if request.method == 'POST':
         terms = request.form['terms']
         payment = request.form['payment']
-        influencer_name = request.form['influencer_name']
-
+        influencer_name = request.form['influencer']
+        
         ad_request.terms = terms
         ad_request.payment = payment
-        influencer_name = influencer_name
+        ad_request.influencer_name = influencer_name
+        
 
         try:
+            
             db.session.commit()
             flash('Ad request updated successfully!', 'success')
             return redirect(url_for('sponsor_campaigns'))
@@ -968,7 +969,7 @@ def create_add_request(campaign_id):
         db.session.commit()
         
         flash('Ad request created successfully!', 'success')
-        return redirect(url_for('sponsor_campaigns'))
+        return redirect(url_for('campaign_details', campaign_id=campaign_id))
 
     return render_template('create_add_request.html', user_role=user_role,influencer_name=influencer_name, campaign=campaign)
 

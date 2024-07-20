@@ -29,7 +29,7 @@ block content %}
         <div class="card shadow-sm">
           <div class="card-body">
             <h5 class="card-title">
-              <a href="{{ url_for('view_ad', request_id=request.id) }}">
+              <a href="{{ url_for('view_ad', source='details',request_id=request.id) }}">
                 {{ request.ad_name }}
               </a>
             </h5>
