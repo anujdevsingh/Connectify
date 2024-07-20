@@ -25,6 +25,10 @@ content %}
           <p class="card-text">
             <small class="text-muted">{{ campaign.niche }}</small>
           </p>
+          <p class="card-text">
+            {% if campaign.is_public %} Public {% else %} Private {% endif %}
+          </p>
+
           <div class="mt-3">
             <a
               href="{{ url_for('view_campaign', campaign_id=campaign.id) }}"

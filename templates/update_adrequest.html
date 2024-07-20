@@ -1,0 +1,73 @@
+{% extends "base.html" %} {% block title %}Update Ad Request{% endblock %} {%
+block content %}
+<div class="container mt-5">
+  <h2 class="text-center">Update Ad Request</h2>
+  <form
+    method="POST"
+    action="{{ url_for('update_adrequest', campaign_id=ad_request.campaign_id) }}"
+  >
+    <div class="form-group">
+      <label for="ad_name">Ad Name:</label>
+      <input
+        type="text"
+        class="form-control"
+        id="ad_name"
+        name="ad_name"
+        value="{{ ad_request.ad_name }}"
+        readonly
+      />
+    </div>
+    <div class="form-group">
+      <label for="description">Description:</label>
+      <textarea
+        class="form-control"
+        id="description"
+        name="description"
+        rows="3"
+        readonly
+      >
+{{ ad_request.description }}</textarea
+      >
+    </div>
+    <div class="form-group">
+      <label for="terms">Terms:</label>
+      <textarea class="form-control" id="terms" name="terms" rows="3">
+{{ ad_request.terms }}</textarea
+      >
+    </div>
+    <div class="form-group">
+      <label for="payment">Payment:</label>
+      <input
+        type="number"
+        class="form-control"
+        id="payment"
+        name="payment"
+        value="{{ ad_request.payment }}"
+      />
+    </div>
+    <div class="form-group">
+      <label for="influencer_name">Influencer Assigned:</label>
+      <input
+        type="text"
+        class="form-control"
+        id="influencer_name"
+        name="influencer_name"
+        value="{{ influencer_name }}"
+      />
+      <a
+        href="{{url_for('request_influencer', source='update', campaign_id=ad_request.campaign_id)}}"
+        class="btn btn-info mt-2"
+        >Find</a
+      >
+    </div>
+    <div class="text-center">
+      <button type="submit" class="btn btn-success">
+        Submit Modifications
+      </button>
+      <a href="{{ url_for('sponsor_campaigns') }}" class="btn btn-danger"
+        >Cancel</a
+      >
+    </div>
+  </form>
+</div>
+{% endblock %}

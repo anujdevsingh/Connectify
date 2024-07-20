@@ -19,7 +19,7 @@
 
             <form
               method="GET"
-              action="{{ url_for('create_add_request', campaign_id=campaign_id) }}"
+              action="{% if source == 'create' %}{{ url_for('create_add_request', campaign_id=campaign_id) }}{% elif source == 'update' %}{{ url_for('update_adrequest', campaign_id=campaign_id) }}{% endif %}"
             >
               <input
                 type="hidden"

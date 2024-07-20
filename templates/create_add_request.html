@@ -59,7 +59,7 @@ block content %}
           value="{{ influencer_name }}"
         />
         <a
-          href="{{url_for('request_influencer', campaign_id=campaign.id)}}"
+          href="{{url_for('request_influencer',source='create', campaign_id=campaign.id)}}"
           class="btn btn-info"
           >Find</a
         >

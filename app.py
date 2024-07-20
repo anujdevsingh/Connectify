@@ -261,9 +261,9 @@ def admin_find():
         influencers = Influencer.query.join(User).filter(User.name.ilike(f"%{search_query}%")).all()
         sponsors = Sponsor.query.join(User).filter(User.name.ilike(f"%{search_query}%")).all()
     else:
-        campaigns = Campaign.query.all()
-        influencers = Influencer.query.all()
-        sponsors = Sponsor.query.all()
+        campaigns = Campaign.query.filter_by(is_flagged=False).all()
+        influencers = Influencer.query.filter_by(is_flagged=False).all()
+        sponsors = Sponsor.query.filter_by(is_flagged=False).all()
     
     
     return render_template('admin_find.html', user_role=user_role , campaigns=campaigns, influencers=influencers, sponsors=sponsors)
@@ -278,9 +278,14 @@ def flag_influencer(influencer_id):
     if not influencer:
         flash('Influencer not found.', 'danger')
         return redirect(url_for('admin_find'))
-    influencer.is_flagged = True
+    influencer.is_flagged = not influencer.is_flagged
     db.session.commit()
-    flash('Influencer flagged/unflagged successfully.', 'success')
+    if influencer.is_flagged:
+        flash('Influencer is flagged successfully.', 'success')
+    else:
+        flash('Influencer is unflagged successfully.', 'success')
+        return redirect(url_for('admin_info'))
+    
     return redirect(url_for('admin_find'))
 @app.route('/flag_campaign/<int:campaign_id>',methods=['GET'])
 def flag_campaign(campaign_id):
@@ -292,10 +297,14 @@ def flag_campaign(campaign_id):
     if not campaign:
         flash('Campaign not found.', 'danger')
         return redirect(url_for('admin_find'))
-    campaign.is_flagged = True
+    campaign.is_flagged = not campaign.is_flagged
     db.session.commit()
-    flash('Campaign flagged/unflagged successfully.', 'success')
-    return redirect(url_for('admin_find'), user_role=user_role)
+    if campaign.is_flagged:
+        flash('Campaign is flagged successfully.', 'success')
+    else:
+        flash('Campaign is unflagged successfully.', 'success')
+        return redirect(url_for('admin_info'))
+    return redirect(url_for('admin_find'))
 
 @app.route('/flag_sponsor/<int:sponsor_id>',methods=['GET'])
 def flag_sponsor(sponsor_id):
@@ -306,9 +315,13 @@ def flag_sponsor(sponsor_id):
     if not sponsor:
         flash('Sponsor not found.', 'danger')
         return redirect(url_for('admin_find'))
-    sponsor.is_flagged = True
+    sponsor.is_flagged = not sponsor.is_flagged
     db.session.commit()
-    flash('Sponsor flagged/unflagged successfully.', 'success')
+    if sponsor.is_flagged:
+        flash('Sponsor is flagged successfully.', 'success')
+    else:
+        flash('Sponsor is unflagged successfully.', 'success')
+        return redirect(url_for('admin_info'))
     return redirect(url_for('admin_find'))
 
 @app.route('/admin_info')
@@ -319,11 +332,13 @@ def admin_info():
     
     user_role = session.get('user_role')
     # Fetch flagged campaigns and users
+    adrequests=AdRequest.query.all()
+    ongoing_campaigns = AdRequest.query.filter_by(status='accepted').all()
     flagged_campaigns = Campaign.query.filter_by(is_flagged=True).all()
     flagged_influencers = Influencer.query.filter_by(is_flagged=True).all()
     flagged_sponsors = Sponsor.query.filter_by(is_flagged=True).all()
     
-    return render_template('admin_info.html',user_role=user_role, flagged_campaigns=flagged_campaigns, flagged_influencers=flagged_influencers, flagged_sponsors=flagged_sponsors)
+    return render_template('admin_info.html',user_role=user_role, adrequests=adrequests, flagged_campaigns=flagged_campaigns, flagged_influencers=flagged_influencers, flagged_sponsors=flagged_sponsors,ongoing_campaigns=ongoing_campaigns)
 
 @app.route('/admin_stats')
 def admin_stats():
@@ -336,9 +351,9 @@ def admin_stats():
     total_influencers = Influencer.query.count()
     total_sponsors = Sponsor.query.count()
     
-    budget_utilization_data = get_budget_utilization_data()
-    campaign_status_data = get_campaign_status_data()
-    influencer_reach_data = get_influencer_reach_data()
+    budget_utilization_data = budget_get_utilization_data()
+    campaign_status_data = get_all_campaign_status_data()
+    influencer_reach_data = influencer_get_reach_data()
     
     return render_template('admin_stats.html', user_role=user_role,
                            total_campaigns=total_campaigns, 
@@ -350,7 +365,7 @@ def admin_stats():
 
 
 
-def get_budget_utilization_data():
+def budget_get_utilization_data():
     # Fetch all campaigns from the database
     campaigns = Campaign.query.all()
     
@@ -368,7 +383,7 @@ def get_budget_utilization_data():
         }]
     }
 
-def get_campaign_status_data():
+def get_all_campaign_status_data():
     # Fetch and count ad requests based on their status
     active_count = AdRequest.query.filter_by(status='accepted').count()
     pending_count = AdRequest.query.filter_by(status='pending').count()
@@ -384,13 +399,18 @@ def get_campaign_status_data():
         }]
     }
     
-def get_influencer_reach_data():
+def influencer_get_reach_data():
     # Implement logic to fetch and format influencer reach data
+    influencers = Influencer.query.all()
+    
+    # Extract influencer names and reach
+    labels = [influencer.user.name for influencer in influencers]
+    data = [convert_to_int(influencer.reach) for influencer in influencers]
     return {
-        'labels': ['Influencer 1', 'Influencer 2', 'Influencer 3'],
+        'labels': labels,
         'datasets': [{
             'label': 'Influencer Reach',
-            'data': [1000, 1500, 1200],
+            'data': data,
             'backgroundColor': 'rgba(153, 102, 255, 0.2)',
             'borderColor': 'rgba(153, 102, 255, 1)',
             'borderWidth': 1
@@ -419,7 +439,7 @@ def influencer_profile():
         return redirect(url_for('login'))
     new_requests = AdRequest.query.filter_by(influencer_id=influencer.id,created_by='sponsor', status='pending').all()
     # active_campaigns = influencer.campaigns.query.filter_by(status='accepted', influencer_id=influencer.id).all()
-    active_campaigns = AdRequest.query.filter_by(influencer_id=influencer.user_id,status='accepted').all()
+    active_campaigns = AdRequest.query.filter_by(influencer_id=influencer.id,status='accepted').all()
     ad_requests = influencer.ad_requests
     return render_template('influencer_profile.html', influencer=influencer, new_requests=new_requests, active_campaigns=active_campaigns, ad_requests=ad_requests, user_role=user_role)
 
@@ -464,7 +484,10 @@ def accept_request(request_id):
     ad_request.status = 'accepted'
     db.session.commit()
     flash('Ad request accepted!', 'success')
-    return redirect(url_for('influencer_profile') , user_role=user_role)
+    if user_role == 'sponsor':
+        return redirect(url_for('sponsor_profile'))
+    elif user_role == 'influencer':
+        return redirect(url_for('influencer_profile'))
 
 @app.route('/reject_request/<int:request_id>', methods=['POST'])
 def reject_request(request_id):
@@ -473,7 +496,10 @@ def reject_request(request_id):
     ad_request.status = 'rejected'
     db.session.commit()
     flash('Ad request rejected.', 'success')
-    return redirect(url_for('influencer_profile'),user_role)
+    if user_role == 'sponsor':
+        return redirect(url_for('sponsor_profile'))
+    elif user_role == 'influencer':
+        return redirect(url_for('influencer_profile'))
 
 @app.route('/ad_view/<int:request_id>', methods=['GET'])
 def view_ad(request_id):
@@ -513,6 +539,7 @@ def modify_request(request_id):
         ad_request.modified_terms = request.form['modified_terms']
         ad_request.modified_payment = request.form['modified_payment']
         ad_request.negotiation_status = 'pending'
+        ad_request.created_by=user_role
         
         db.session.commit()
         flash('Request modified successfully. Waiting for sponsor approval.', 'success')
@@ -579,15 +606,78 @@ def request_campaign(campaign_id):
 
         flash('Campaign requested successfully!', 'success')
 
-    return redirect(url_for('influencer_find'), user_role=user_role)
+    return redirect(url_for('influencer_find'))
 
 @app.route('/influencer_stats')
 def influencer_stats():
     if 'user_id' not in session or session.get('user_role') != 'influencer':
         flash('You need to log in first.', 'warning')
         return redirect(url_for('login'))
+    
     user_role = session.get('user_role')
-    return render_template('influencer_stats.html', user_role=user_role)
+    influencer_id = session['user_id']
+    
+    # Fetch data for charts
+    total_adrequests = AdRequest.query.filter_by(influencer_id=influencer_id).count()
+    accepted_adrequests = AdRequest.query.filter_by(influencer_id=influencer_id, status='accepted').count()
+    completed_adrequests = AdRequest.query.filter_by(influencer_id=influencer_id, status='completed').count()
+    
+    # Calculate total earnings from accepted campaigns
+    total_earnings = AdRequest.query.with_entities(db.func.sum(AdRequest.payment)).filter(
+        AdRequest.influencer_id == influencer_id, AdRequest.status == 'accepted').scalar() or 0
+    
+    # Calculate earnings from each accepted campaign
+    earnings_by_campaign = get_earnings_by_campaign(influencer_id)
+    adrequests_by_status = get_adrequests_by_status(influencer_id)
+   
+    
+    return render_template('influencer_stats.html', user_role=user_role,
+                           total_adrequests=total_adrequests,
+                           accepted_adrequests=accepted_adrequests,
+                           completed_adrequests=completed_adrequests,
+                           total_earnings=total_earnings,
+                           earnings_by_campaign=earnings_by_campaign,
+                           adrequests_by_status=adrequests_by_status)
+    
+    
+    
+    
+def get_adrequests_by_status(influencer_id):
+    # Fetch ad requests assigned to the influencer
+    ad_requests = AdRequest.query.filter_by(influencer_id=influencer_id).all()
+    
+    accepted_ad_requests = [req for req in ad_requests if req.status == 'accepted']
+    completed_ad_requests = [req for req in ad_requests if req.status == 'completed']
+    pending_ad_requests = [req for req in ad_requests if req.status == 'pending']
+    
+    
+    # Prepare data for charts
+    return {
+        'labels': ['Accepted', 'Pending','Completed'],
+        'datasets': [{
+            'label': 'Ad Requests',
+            'data': [len(accepted_ad_requests), len(pending_ad_requests),len(completed_ad_requests)],
+            'backgroundColor': ['#36A2EB','#FF6384', '#FFCE56']
+        }]
+    }
+    
+    
+    
+def get_earnings_by_campaign(influencer_id):
+    # Fetch ad requests assigned to the influencer
+    ad_requests = AdRequest.query.filter_by(influencer_id=influencer_id).all()
+    
+    accepted_ad_requests = [req for req in ad_requests if req.status == 'accepted']
+    
+    # Prepare data for charts
+    return {
+        'labels': [req.ad_name for req in accepted_ad_requests],
+        'datasets': [{
+            'label': 'Earnings by Campaign',
+            'data': [req.payment for req in accepted_ad_requests],
+            'backgroundColor': ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'][:len(accepted_ad_requests)]
+        }]
+    }
 
 @app.route('/sponsor_dashboard')
 def sponsor_dashboard():
@@ -611,15 +701,14 @@ def sponsor_profile():
     
     
 
-    return render_template('sponsor_profile.html', user_role=user_role, pending_requests=pending_requests,active_campaigns=active_campaigns,sponsor=sponsor)
+    return render_template('sponsor_profile.html',sponsor=sponsor, user_role=user_role, pending_requests=pending_requests,active_campaigns=active_campaigns)
 
 @app.route('/approve_modification/<int:request_id>', methods=['POST'])
 def approve_modification(request_id):
     if 'user_id' not in session or session.get('user_role') != 'sponsor':
         flash('You need to log in first.', 'warning')
         return redirect(url_for('login'))
-    user_role = session.get('user_role')
-    
+    user_role= session.get('user_role')
     ad_request = AdRequest.query.get_or_404(request_id)
     
     ad_request.terms = ad_request.modified_terms
@@ -628,10 +717,11 @@ def approve_modification(request_id):
     ad_request.modified_payment = None
     ad_request.negotiation_status = 'approved'
     ad_request.status = 'accepted'
+    ad_request.created_by = user_role
     
     db.session.commit()
     flash('Modification approved successfully.', 'success')
-    return redirect(url_for('sponsor_profile'),user_role=user_role)
+    return redirect(url_for('sponsor_profile'))
 
 @app.route('/reject_modification/<int:request_id>', methods=['POST'])
 def reject_modification(request_id):
@@ -647,13 +737,14 @@ def reject_modification(request_id):
     
     db.session.commit()
     flash('Modification rejected.', 'danger')
-    return render_template('sponsor_profile.html',user_role=user_role)
+    return render_template('sponsor_profile.html')
 
 @app.route('/sponsor_campaigns')
 def sponsor_campaigns():
     if 'user_id' not in session or session.get('user_role') != 'sponsor':
         flash('You need to log in first.', 'warning')
         return redirect(url_for('login'))
+    user_role = session.get('user_role')
     
     sponsor = Sponsor.query.filter_by(user_id=session['user_id']).first()
     
@@ -663,7 +754,7 @@ def sponsor_campaigns():
     else:
         campaigns = Campaign.query.filter_by(sponsor_id=sponsor.id).all()
     
-    return render_template('sponsor_campaigns.html', user_role='sponsor', campaigns=campaigns)
+    return render_template('sponsor_campaigns.html', user_role=user_role, campaigns=campaigns, sponsor=sponsor)
 
 @app.route('/vew_sponsor_details/<int:sponsor_id>')
 def view_sponsor_details(sponsor_id):
@@ -776,8 +867,8 @@ def delete_campaign(campaign_id):
 
 
 
-@app.route('/view_campaign_details/<int:campaign_id>', methods=['GET','POST'] )
-def view_campaign_details(campaign_id):
+@app.route('/campaign_details/<int:campaign_id>', methods=['GET','POST'] )
+def campaign_details(campaign_id):
     campaign= Campaign.query.get_or_404(campaign_id)
     
     sponsor = Sponsor.query.filter_by(user_id=session['user_id']).first()
@@ -791,6 +882,49 @@ def view_campaign_details(campaign_id):
     influencers=Influencer.query.all()
     
     return render_template('campaign_details.html', campaign=campaign, ad_requests=ad_requests,  influencers=influencers ,user_role='sponsor')
+
+
+@app.route('/update_adrequest/<int:campaign_id>', methods=['GET', 'POST'])
+def update_adrequest(campaign_id):
+    if 'user_id' not in session or session.get('user_role') != 'sponsor':
+        flash('You need to log in first.', 'warning')
+        return redirect(url_for('login'))
+    
+    influencer_name = request.form.get('influencer_name')
+    if request.method == 'GET':
+        influencer_id = request.args.get('influencer_id')
+        if influencer_id:
+            influencer = db.session.get(Influencer, influencer_id)
+            if influencer:
+                influencer_name = influencer.user.name
+    
+    user_role = session.get('user_role')
+    
+    # Fetch the AdRequest using campaign_id
+    ad_request = AdRequest.query.filter_by(campaign_id=campaign_id).first()
+    if not ad_request:
+        flash('Ad request not found.', 'danger')
+        return redirect(url_for('sponsor_campaigns'))
+    
+    if request.method == 'POST':
+        terms = request.form['terms']
+        payment = request.form['payment']
+        influencer_name = request.form['influencer_name']
+
+        ad_request.terms = terms
+        ad_request.payment = payment
+        influencer_name = influencer_name
+
+        try:
+            db.session.commit()
+            flash('Ad request updated successfully!', 'success')
+            return redirect(url_for('sponsor_campaigns'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error updating ad request: {str(e)}', 'danger')
+
+    return render_template('update_adrequest.html', ad_request=ad_request, user_role=user_role)
+
 
 @app.route('/create_add_request/<int:campaign_id>', methods=['GET', 'POST'])
 def create_add_request(campaign_id):
@@ -856,23 +990,124 @@ def sponsor_find():
         influencers = Influencer.query.all()
     
     return render_template('sponsor_find.html', user_role='sponsor', campaigns=campaigns,influencers=influencers)
-@app.route('/request_influencer/<int:campaign_id>', methods=['GET', 'POST'])
-def request_influencer(campaign_id):
+@app.route('/request_influencer/<string:source>/<int:campaign_id>', methods=['GET', 'POST'])
+@app.route('/request_influencer/<string:source>/<int:campaign_id>', methods=['GET', 'POST'])
+def request_influencer(source,campaign_id):
     if 'user_id' not in session or session.get('user_role') != 'sponsor':
         flash('You need to log in first.', 'warning')
         return redirect(url_for('login'))
     user_role = session.get('user_role')
     influencers = Influencer.query.all()
-    return render_template('request_influencer.html', user_role=user_role, campaign_id=campaign_id,influencers=influencers)
+    return render_template('request_influencer.html',source=source ,user_role=user_role, campaign_id=campaign_id,influencers=influencers)
 
 @app.route('/sponsor_stats')
 def sponsor_stats():
     if 'user_id' not in session or session.get('user_role') != 'sponsor':
         flash('You need to log in first.', 'warning')
         return redirect(url_for('login'))
-    return render_template('sponsor_stats.html', user_role='sponsor')
+    user_role = session.get('user_role')
+    sponsor = Sponsor.query.filter_by(user_id=session['user_id']).first()
+    
+    # Fetch data for charts
+    total_campaigns = Campaign.query.filter_by(sponsor_id=sponsor.id).count()
+    total_influencers = Influencer.query.join(AdRequest).filter(AdRequest.sponsor_id == sponsor.id).distinct().count()
+    total_adrequests = AdRequest.query.join(Campaign).filter(Campaign.sponsor_id == sponsor.id).count()
+    
+    budget_utilization_data = get_budget_utilization_data(sponsor_id=sponsor.id)
+    campaign_status_data = get_campaign_status_data(sponsor_id=sponsor.id)
+    influencer_reach_data = get_influencer_reach_data(sponsor_id=sponsor.id)
+    
+    return render_template('sponsor_stats.html', user_role=user_role,
+                           total_campaigns=total_campaigns, 
+                           total_influencers=total_influencers, 
+                           total_adrequests=total_adrequests,
+                           budget_utilization_data=budget_utilization_data,
+                           campaign_status_data=campaign_status_data,
+                           influencer_reach_data=influencer_reach_data,)
+    
 
+def convert_to_int(value):
+    if value[-1].upper() == 'M':
+        return int(float(value[:-1]) * 1_000_000)
+    elif value[-1].upper() == 'K':
+        return int(float(value[:-1]) * 1_000)
+    elif value[-1].upper() == 'B':
+        return int(float(value[:-1]) * 1_000_000_000)
+    else:
+        return int(value)
 
+def get_influencer_reach_data(sponsor_id):
+    # Fetch ad requests made by the sponsor
+    ad_requests = AdRequest.query.filter_by(sponsor_id=sponsor_id).all()
+    
+    # Extract unique influencer IDs from the ad requests
+    influencer_ids = {ad_request.influencer_id for ad_request in ad_requests}
+    
+    # Fetch influencers based on the extracted IDs
+    influencers = Influencer.query.filter(Influencer.id.in_(influencer_ids)).all()
+    
+    # Extract influencer names and reach
+    labels = [influencer.user.name for influencer in influencers]
+    data = [convert_to_int(influencer.reach) for influencer in influencers]
+    
+    # Format the data for Chart.js
+    return {
+        'labels': labels,
+        'datasets': [{
+            'label': 'Influencer Reach',
+            'data': data,
+            'backgroundColor': 'rgba(153, 102, 255, 0.2)',
+            'borderColor': 'rgba(153, 102, 255, 1)',
+            'borderWidth': 1
+        }]
+    }
+    
+def get_budget_utilization_data(sponsor_id):
+    # Fetch campaigns for the specific sponsor
+    campaigns = Campaign.query.filter_by(sponsor_id=sponsor_id).all()
+    
+    # Extract campaign titles and budgets
+    labels = [campaign.title for campaign in campaigns]
+    data = [campaign.budget for campaign in campaigns]
+    
+    # Format the data for Chart.js
+    return {
+        'labels': labels,
+        'datasets': [{
+            'label': 'Budget Utilization',
+            'data': data,
+            'backgroundColor': ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'][:len(campaigns)]
+        }]
+    }
+
+def get_campaign_status_data(sponsor_id):
+    # Fetch campaigns for the given sponsor
+    accepted_campaigns = Campaign.query.join(AdRequest).filter(
+        AdRequest.sponsor_id == sponsor_id,
+        AdRequest.status == 'accepted'
+    ).count()
+    
+    pending_campaigns = Campaign.query.join(AdRequest).filter(
+        AdRequest.sponsor_id == sponsor_id,
+        AdRequest.status == 'pending'
+    ).count()
+    
+    completed_campaigns = Campaign.query.join(AdRequest).filter(
+        AdRequest.sponsor_id == sponsor_id,
+        AdRequest.status == 'completed'
+    ).count()
+    
+    # Prepare the data for the chart
+    campaign_status_data = {
+        "labels": ["Accepted", "Pending", "Completed"],
+        "datasets": [{
+            "label": "Campaign Status",
+            "data": [accepted_campaigns, pending_campaigns, completed_campaigns],
+            "backgroundColor": ['#4BC0C0', '#FF9F40', '#FF6384']
+        }]
+    }
+    
+    return campaign_status_data
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()

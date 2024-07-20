@@ -1,4 +1,81 @@
-{% extends "base.html" %} {% block title %}Influencer statistic{% endblock %} {%
+{% extends "base.html" %} {% block title %}Influencer Stats{% endblock %} {%
 block content %}
-<h3>Welcome to influencer statistic page</h3>
+<h3>Welcome to Influencer statistic page</h3>
+<div class="stats-container">
+  <div class="row">
+    <div class="col-md-3">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Total Ad Requests</h5>
+          <p class="card-text">{{ total_adrequests }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Accepted Ad Requests</h5>
+          <p class="card-text">{{ accepted_adrequests }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Completed Ad Requests</h5>
+          <p class="card-text">{{ completed_adrequests }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Total Earnings</h5>
+          <p class="card-text">${{ total_earnings }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row mt-4">
+    <div class="col-md-6">
+      <h3>Ad Requests</h3>
+      <canvas id="adRequestsChart"></canvas>
+    </div>
+    <div class="col-md-6">
+      <h3>Earnings by Campaign</h3>
+      <canvas id="earningsChart"></canvas>
+    </div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  // Ad Requests by Status Chart
+  var adRequestsCtx = document.getElementById('adRequestsChart').getContext('2d');
+  var adRequestsChart = new Chart(adRequestsCtx, {
+      type: 'bar',
+      data: {{ adrequests_by_status|tojson }},
+      options: {
+          responsive: true,
+          scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    stepSize: 1
+                }
+            }
+        }
+
+      }
+  });
+
+  // Earnings by Campaign Chart
+  var earningsCtx = document.getElementById('earningsChart').getContext('2d');
+  var earningsChart = new Chart(earningsCtx, {
+      type: 'pie',
+      data: {{ earnings_by_campaign|tojson }},
+      options: {
+          responsive: true,
+      }
+  });
+</script>
 {% endblock %}
