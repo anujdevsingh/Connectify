@@ -1,4 +1,22 @@
-{% extends "base.html" %} {% block title %}Influencer dashboard{% endblock %} {%
-block content %}
-<h1>Welcome Influencer</h1>
+{% extends "base.html" %} {% block title %} Influencer Dashboard {% endblock %}
+{% block content %}
+<div class="container mt-5">
+  <h1 class="text-center">Welcome to {{ influencer.user.name }} Dashboard</h1>
+  {% if flagged_influencer %}
+  <div class="alert-yellow mt-4">
+    <h4 class="heading">Notice</h4>
+    <p>
+      Your account has been flagged. Please contact the admin to resolve any
+      issues.
+    </p>
+  </div>
+  {% endif %}
+</div>
+<style>
+  .alert-yellow {
+    background-color: #ffffcc; /* Light yellow background */
+    border-color: #ffeb3b; /* Yellow border */
+    color: #856404; /* Dark yellow text */
+  }
+</style>
 {% endblock %}

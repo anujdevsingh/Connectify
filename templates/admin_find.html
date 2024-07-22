@@ -64,11 +64,13 @@ content %}
               class="btn btn-view btn-sm"
               >View</a
             >
+            {% if not influencer.is_flagged %}
             <a
               href="{{ url_for('flag_influencer', influencer_id=influencer.id) }}"
               class="btn btn-flag btn-sm"
               >Flag</a
             >
+            {% endif %}
           </div>
         </div>
       </div>
@@ -92,11 +94,13 @@ content %}
               class="btn btn-view btn-sm"
               >View</a
             >
+            {% if not sponsor.is_flagged %}
             <a
               href="{{ url_for('flag_sponsor', sponsor_id=sponsor.id) }}"
               class="btn btn-flag btn-sm"
               >Flag</a
             >
+            {% endif %}
           </div>
         </div>
       </div>

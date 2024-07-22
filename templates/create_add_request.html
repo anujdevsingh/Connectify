@@ -3,6 +3,7 @@ block content %}
 <div class="container mt-5">
   <h2 class="text-center">Create Ad Request</h2>
   <div class="campaign-detail mt-4">
+    <p>*Please assign the influencer first before filling out the form.</p>
     <form
       method="POST"
       action="{{ url_for('create_add_request', campaign_id=campaign.id) }}"
@@ -50,7 +51,7 @@ block content %}
         />
       </div>
       <div class="form-group">
-        <label for="influencer">Influencer Assigned:</label>
+        <label for="influencer">*Influencer Assigned:</label>
         <input
           type="text"
           class="form-control"

@@ -1,4 +1,29 @@
 {% extends "base.html" %} {% block title %} Sponsor Dashboard {% endblock %} {%
 block content %}
-<h1>Welcome to the Sponsor dashboard</h1>
+<div class="container mt-5">
+  <h1 class="text-center">Welcome to {{ sponsor.user.name }} Dashboard</h1>
+  {% if flagged_campaigns or flagged_sponsor %}
+  <div class="alert-yellow mt-4">
+    <h4 class="heading">Notice</h4>
+    {% if flagged_campaigns %}
+    <p>
+      One or more of your campaigns have been flagged. Please review them to
+      resolve any issues.
+    </p>
+    {% endif %} {% if flagged_sponsor %}
+    <p>
+      Your account has been flagged. Please contact the admin to resolve any
+      issues.
+    </p>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+<style>
+  .alert-yellow {
+    background-color: #ffffcc; /* Light yellow background */
+    border-color: #ffeb3b; /* Yellow border */
+    color: #856404; /* Dark yellow text */
+  }
+</style>
 {% endblock %}
