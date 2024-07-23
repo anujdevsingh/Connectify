@@ -36,6 +36,15 @@ block content %}
             <p class="card-text">
               <small class="text-muted">{{ request.terms }}</small>
               <p><small>Budget: ${{ request.payment }}</small></p>
+              {% if request.status == 'rejected' %}
+              <p class="text-danger">Rejected</p>
+              {% endif %}
+              {% if request.status == 'accepted' %}
+              <p class="text-success">Accepted</p>
+              {% endif %}
+              {% if request.status == 'pending' %}
+              <p class="text-warning">Pending</p>
+              {% endif %}
             </p>
             <div class="mt-3">
               <a

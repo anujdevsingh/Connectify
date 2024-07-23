@@ -340,7 +340,8 @@ def admin_stats():
         return redirect(url_for('login'))
     user_role = session.get('user_role')
     # Fetch data for charts
-    total_campaigns = Campaign.query.count()
+    total_public_campaigns = Campaign.query.filter_by(is_public=True).count()
+    total_private_campaigns = Campaign.query.filter_by(is_public=False).count()
     total_influencers = Influencer.query.count()
     total_sponsors = Sponsor.query.count()
     
@@ -349,7 +350,8 @@ def admin_stats():
     influencer_reach_data = influencer_get_reach_data()
     
     return render_template('admin_stats.html', user_role=user_role,
-                           total_campaigns=total_campaigns, 
+                           total_public_campaigns=total_public_campaigns,
+                           total_private_campaigns=total_private_campaigns, 
                            total_influencers=total_influencers, 
                            total_sponsors=total_sponsors,
                            budget_utilization_data=budget_utilization_data,
@@ -386,7 +388,7 @@ def get_all_campaign_status_data():
     return {
         'labels': ['Active', 'Pending', 'Completed'],
         'datasets': [{
-            'label': 'Campaign Status',
+            'label': 'AdRequest Status',
             'data': [active_count, pending_count, completed_count],
             'backgroundColor': ['#4BC0C0', '#FF9F40', '#FF6384']
         }]
@@ -494,7 +496,7 @@ def reject_request(request_id):
 
 @app.route('/ad_view/<string:source>/<int:request_id>', methods=['GET'])
 @app.route('/ad_view/<int:request_id>', methods=['GET'])
-def view_ad(request_id,source='None'):
+def view_ad(request_id,source=None):
     if 'user_id' not in session:
         flash('You need to log in first.', 'warning')
         return redirect(url_for('login'))
@@ -606,7 +608,7 @@ def influencer_stats():
         return redirect(url_for('login'))
     
     user_role = session.get('user_role')
-    influencer_id = session['user_id']
+    influencer_id = Influencer.query.filter_by(user_id=session['user_id']).first().id
     
     # Fetch data for charts
     total_adrequests = AdRequest.query.filter_by(influencer_id=influencer_id).count()
@@ -721,9 +723,8 @@ def approve_modification(request_id):
 
 @app.route('/reject_modification/<int:request_id>', methods=['POST'])
 def reject_modification(request_id):
-    if 'user_id' not in session or session.get('user_role') != 'sponsor':
-        flash('You need to log in first.', 'warning')
-        return redirect(url_for('login'))
+    user_id = session['user_id']
+    sponsor=Sponsor.query.filter_by(user_id=user_id).first()
     user_role = session.get('user_role')
     ad_request = AdRequest.query.get_or_404(request_id)
     
@@ -733,7 +734,7 @@ def reject_modification(request_id):
     
     db.session.commit()
     flash('Modification rejected.', 'danger')
-    return render_template('sponsor_profile.html')
+    return render_template('sponsor_profile.html', sposnor=sponsor, user_role=user_role)
 
 @app.route('/sponsor_campaigns')
 def sponsor_campaigns():
@@ -906,6 +907,15 @@ def update_adrequest(campaign_id):
         ad_request.terms = terms
         ad_request.payment = payment
         ad_request.influencer_name = influencer_name
+        
+        if ad_request.status == 'rejected':
+            ad_request.status = 'pending'
+            
+        elif ad_request.negotiation_status == 'rejected':
+            ad_request.negotiation_status = 'no negotiation'
+            
+        elif ad_request.created_by == 'influencer':
+            ad_request.created_by = 'sponsor'
         
 
         try:
